@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tréninkový deník · Přijímačky 2027</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&family=Source+Sans+3:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --board:#223B32;
+    --board-deep:#1B2F27;
+    --board-line:#3B5A4C;
+    --chalk-dust:#DCE7E0;
+    --paper:#FBF7EE;
+    --paper-shade:#F1EBDC;
+    --ink:#2B2A24;
+    --ink-soft:#6B6A5F;
+    --math:#4E86A4;
+    --math-soft:#DCEAF0;
+    --czech:#8B6A9C;
+    --czech-soft:#EBE1EF;
+    --gold:#E4B95B;
+    --good:#4F8F63;
+    --good-soft:#E4F0E7;
+    --danger:#C1584A;
+    --danger-soft:#F6E4E1;
+    --radius:10px;
+    --shadow:0 6px 18px rgba(0,0,0,.18);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--board);
+    background-image:
+      radial-gradient(ellipse at 20% -10%, rgba(255,255,255,0.04), transparent 40%),
+      repeating-linear-gradient(0deg, transparent, transparent 27px, var(--board-line) 27px, var(--board-line) 28px);
+    color:var(--chalk-dust);
+    font-family:"Source Sans 3", -apple-system, "Segoe UI", sans-serif;
+    min-height:100vh;
+    line-height:1.5;
+  }
+  h1,h2,h3,.chalk{
+    font-family:"Kalam", "Segoe Print", cursive;
+    font-weight:700;
+    letter-spacing:.2px;
+  }
+  a{color:inherit;}
+  button{
+    font-family:inherit;
+    cursor:pointer;
+  }
+  button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visible{
+    outline:3px solid var(--gold);
+    outline-offset:2px;
+  }
+
+  header{
+    padding:28px 20px 18px;
+    text-align:center;
+    border-bottom:1px solid var(--board-line);
+  }
+  header h1{
+    font-size:2rem;
+    margin:0 0 4px;
+    color:#fff;
+  }
+  header p{
+    margin:0;
+    color:var(--chalk-dust);
+    opacity:.75;
+    font-size:.95rem;
+  }
+
+  nav{
+    display:flex;
+    justify-content:center;
+    gap:6px;
+    flex-wrap:wrap;
+    padding:14px 12px 0;
+  }
+  nav button{
+    background:none;
+    border:none;
+    color:var(--chalk-dust);
+    opacity:.65;
+    font-size:1rem;
+    padding:10px 16px;
+    border-bottom:3px solid transparent;
+    transition:opacity .15s, border-color .15s;
+  }
+  nav button:hover{opacity:.9;}
+  nav button.active{
+    opacity:1;
+    color:#fff;
+    border-bottom-color:var(--gold);
+  }
+
+  main{
+    max-width:760px;
+    margin:0 auto;
+    padding:28px 18px 80px;
+  }
+
+  .card{
+    background:var(--paper);
+    color:var(--ink);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    padding:22px 24px;
+    margin-bottom:20px;
+  }
+
+  /* --- Plan view --- */
+  .day-strip{
+    display:flex;
+    justify-content:center;
+    gap:8px;
+    margin-bottom:22px;
+    flex-wrap:wrap;
+  }
+  .day-dot{
+    width:40px;height:40px;
+    border-radius:50%;
+    border:2px solid var(--board-line);
+    background:var(--board-deep);
+    color:var(--chalk-dust);
+    display:flex;align-items:center;justify-content:center;
+    font-weight:600;
+    font-family:"Source Sans 3", sans-serif;
+  }
+  .day-dot.current{border-color:var(--gold); color:#fff;}
+  .day-dot.done{background:var(--good); border-color:var(--good); color:#fff;}
+  .day-dot[disabled]{opacity:.4;}
+
+  .plan-head{text-align:center; margin-bottom:8px;}
+  .plan-head h2{font-size:1.5rem; margin:0 0 4px; color:#fff;}
+  .plan-head p{margin:0; opacity:.75; font-size:.9rem;}
+
+  .subject-row{display:flex; gap:16px; flex-wrap:wrap;}
+  .subject-card{
+    flex:1 1 260px;
+    border-top:6px solid var(--math);
+  }
+  .subject-card.czech{border-top-color:var(--czech);}
+  .subject-card h3{margin:0 0 2px; font-size:1.3rem;}
+  .subject-card .meta{color:var(--ink-soft); font-size:.9rem; margin-bottom:14px;}
+  .subject-card .progressbar{
+    height:8px; background:var(--paper-shade); border-radius:6px; overflow:hidden; margin-bottom:14px;
+  }
+  .subject-card .progressbar > span{display:block; height:100%; background:var(--math);}
+  .subject-card.czech .progressbar > span{background:var(--czech);}
+  .go-btn{
+    display:inline-block;
+    width:100%;
+    text-align:center;
+    padding:11px 0;
+    border-radius:8px;
+    border:none;
+    background:var(--math);
+    color:#fff;
+    font-size:1rem;
+    font-weight:600;
+  }
+  .subject-card.czech .go-btn{background:var(--czech);}
+
+  .tip{
+    text-align:center;
+    font-size:.85rem;
+    color:var(--chalk-dust);
+    opacity:.7;
+    margin-top:18px;
+  }
+
+  /* --- Exercise run view --- */
+  .run-top{
+    display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;
+    font-size:.9rem; color:var(--chalk-dust); opacity:.85;
+  }
+  .run-top button.back{
+    background:none;border:none;color:var(--chalk-dust);text-decoration:underline;padding:4px 0;
+  }
+  .badge-row{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px;}
+  .badge{
+    font-size:.78rem;
+    padding:4px 10px;
+    border-radius:20px;
+    background:var(--paper-shade);
+    color:var(--ink-soft);
+  }
+  .badge.code{font-weight:700; color:var(--ink); background:var(--gold); color:#3a2c08;}
+  .badge.topic.math{background:var(--math-soft); color:var(--math);}
+  .badge.topic.czech{background:var(--czech-soft); color:var(--czech);}
+
+  .prompt{font-size:1.15rem; margin:6px 0 18px; white-space:pre-wrap;}
+  .answer-row{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px;}
+  .answer-row input[type=text]{
+    flex:1 1 200px;
+    padding:11px 12px;
+    border-radius:8px;
+    border:1px solid #cfc7b0;
+    font-size:1rem;
+    background:#fff;
+  }
+  .check-btn{
+    padding:11px 20px;
+    border-radius:8px;
+    border:none;
+    background:var(--ink);
+    color:#fff;
+    font-weight:600;
+  }
+  .result-box{
+    border-radius:8px;
+    padding:14px 16px;
+    margin-bottom:14px;
+    display:none;
+  }
+  .result-box.show{display:block;}
+  .result-box.correct{background:var(--good-soft); color:#295136;}
+  .result-box.wrong{background:var(--danger-soft); color:#6d2a20;}
+  .result-box .verdict{font-weight:700; margin-bottom:4px;}
+
+  .nav-row{display:flex; justify-content:space-between; gap:10px; margin-top:6px;}
+  .nav-row button{
+    padding:9px 16px; border-radius:8px; border:1px solid #cfc7b0; background:#fff; color:var(--ink); font-weight:600;
+  }
+  .nav-row button:disabled{opacity:.4; cursor:default;}
+
+  .note-area{margin-top:18px; border-top:1px dashed #d8d1bd; padding-top:14px;}
+  .note-area label{display:block; font-size:.85rem; color:var(--ink-soft); margin-bottom:6px;}
+  .note-area textarea{
+    width:100%; min-height:60px; padding:10px; border-radius:8px; border:1px solid #cfc7b0; font-family:inherit; font-size:.95rem; resize:vertical;
+  }
+  .note-save{
+    margin-top:8px; padding:8px 14px; border-radius:8px; border:none; background:var(--paper-shade); color:var(--ink); font-weight:600; font-size:.85rem;
+  }
+  .note-saved-flag{font-size:.8rem; color:var(--good); margin-left:8px;}
+
+  /* --- Results view --- */
+  table.results{width:100%; border-collapse:collapse; font-size:.92rem;}
+  table.results th, table.results td{
+    text-align:left; padding:8px 6px; border-bottom:1px solid var(--paper-shade);
+    vertical-align:top;
+  }
+  table.results th{color:var(--ink-soft); font-weight:600; font-size:.8rem;}
+  .stat-row{display:flex; gap:14px; flex-wrap:wrap; margin-bottom:18px;}
+  .stat{
+    flex:1 1 140px; background:var(--paper-shade); border-radius:8px; padding:12px 14px; text-align:center;
+  }
+  .stat .num{font-family:"Kalam",cursive; font-size:1.6rem; display:block; color:var(--ink);}
+  .stat .lbl{font-size:.78rem; color:var(--ink-soft);}
+  textarea#exportBox{
+    width:100%; min-height:160px; font-family:monospace; font-size:.85rem; padding:12px; border-radius:8px; border:1px solid #cfc7b0; margin-top:10px;
+  }
+  .copy-btn{
+    margin-top:10px; padding:10px 18px; border-radius:8px; border:none; background:var(--gold); color:#3a2c08; font-weight:700;
+  }
+  .copy-flag{font-size:.85rem; margin-left:10px; color:var(--good);}
+  .status-dot{display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:6px;}
+  .status-dot.ok{background:var(--good);}
+  .status-dot.bad{background:var(--danger);}
+  .status-dot.none{background:#cfc7b0;}
+
+  @media (prefers-reduced-motion: no-preference){
+    .result-box.show{animation:fadeIn .25s ease-out;}
+  }
+  @keyframes fadeIn{from{opacity:0; transform:translateY(-4px);} to{opacity:1; transform:translateY(0);}}
+
+  @media (max-width:520px){
+    header h1{font-size:1.5rem;}
+    main{padding:20px 12px 70px;}
+    .card{padding:18px 16px;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Tréninkový deník</h1>
+  <p>Přijímačky 2027 · matematika + český jazyk · 30 + 30 minut denně</p>
+</header>
+
+<nav id="mainNav">
+  <button data-view="plan">Plán</button>
+  <button data-view="results">Moje výsledky a poznámky</button>
+</nav>
+
+<main id="app"></main>
+
+<script>
+/* =========================================================
+   OBSAH ÚLOH
+   Vlastní (original) úlohy inspirované tématy a obtížností
+   jednotné přijímací zkoušky Cermat - NEJDE o opsané znění
+   konkrétních testů. Každá úloha má kód (pro zpětnou vazbu),
+   téma a bodové ohodnocení podobné reálné zkoušce.
+
+   Nové dny lze snadno přidat další objekt do DAYS.
+========================================================= */
+const DAYS = [
+  { day:1,
+    math:[
+      {code:"M-01-01", topic:"Zlomky", points:2, type:"text", acceptable:["7/12"], prompt:"Vypočítej a výsledek zapiš jako zlomek v základním tvaru:\n3/4 − 1/6 = ?", explanation:"Společný jmenovatel je 12: 9/12 − 2/12 = 7/12."},
+      {code:"M-01-02", topic:"Procenta", points:2, type:"number", answer:36, prompt:"Kolik je 15 % z čísla 240?", explanation:"240 : 100 × 15 = 36."},
+      {code:"M-01-03", topic:"Slovní úloha – rychlost", points:3, type:"number", answer:24, prompt:"Cyklista ujede 18 km za 45 minut. Jakou průměrnou rychlostí jel (v km/h)?", explanation:"45 minut = 0,75 h. 18 : 0,75 = 24 km/h."},
+      {code:"M-01-04", topic:"Geometrie – obsah", points:2, type:"number", answer:31.5, prompt:"Obdélník má strany 7 cm a 4,5 cm. Jaký je jeho obsah v cm²?", explanation:"7 × 4,5 = 31,5 cm²."}
+    ],
+    czech:[
+      {code:"C-01-01", topic:"Pravopis i/y", points:1, type:"text", acceptable:["i"], prompt:"Doplň chybějící i/y:\nChlapci se rychle rozeběhl_ po hřišti.", explanation:"Podmět 'chlapci' je rodu mužského životného, proto 'rozeběhli' – měkké i."},
+      {code:"C-01-02", topic:"Slovní druhy", points:1, type:"text", acceptable:["příslovce","prislovce"], prompt:"Urči slovní druh slova 'rychle' ve větě: Pes rychle běžel k brance.", explanation:"'Rychle' vyjadřuje způsob děje – jde o příslovce."},
+      {code:"C-01-03", topic:"Skladba – větné členy", points:2, type:"text", acceptable:["přívlastek","privlastek"], prompt:"Ve větě 'Malá holčička nakrmila hladového psa.' urči, jakým větným členem je slovo 'hladového'.", explanation:"Slovo 'hladového' rozvíjí podstatné jméno 'psa' – jde o přívlastek."},
+      {code:"C-01-04", topic:"Práce s textem", points:2, type:"text", keywordMatch:true, acceptable:["10 minut","deset minut"], prompt:"Přečti si text a odpověz na otázku.\n\n„Jarní bouřka přišla náhle. Blesky křižovaly nebe a hrom duněl tak silně, že se otřásala okna. Po deseti minutách bylo po všem a na obloze se objevila duha.“\n\nOtázka: Jak dlouho bouřka trvala?", explanation:"V textu se píše „po deseti minutách bylo po všem“."}
+    ]
+  },
+  { day:2,
+    math:[
+      {code:"M-02-01", topic:"Rovnice", points:2, type:"number", answer:6, prompt:"Vyřeš rovnici a urči x:\n2x + 5 = 17", explanation:"2x = 12, x = 6."},
+      {code:"M-02-02", topic:"Poměr", points:3, type:"number", answer:24, prompt:"Rozděl 60 kuliček v poměru 2 : 3. Kolik kuliček dostane ten, kdo má menší díl?", explanation:"60 : 5 = 12 (jeden díl). Menší díl = 2 × 12 = 24."},
+      {code:"M-02-03", topic:"Jednotky", points:1, type:"number", answer:150, prompt:"Kolik minut je 2,5 hodiny?", explanation:"2,5 × 60 = 150 minut."},
+      {code:"M-02-04", topic:"Geometrie – Pythagorova věta", points:3, type:"number", answer:10, prompt:"Pravoúhlý trojúhelník má odvěsny 6 cm a 8 cm. Jak dlouhá je přepona?", explanation:"c² = 6² + 8² = 36 + 64 = 100, c = 10 cm."}
+    ],
+    czech:[
+      {code:"C-02-01", topic:"Velká písmena", points:1, type:"text", acceptable:["brno"], prompt:"Které slovo se píše s velkým písmenem na začátku?\n'V neděli jedeme do (brno / Brno).'", explanation:"Názvy měst jsou vlastní jména – píšeme je s velkým písmenem: Brno."},
+      {code:"C-02-02", topic:"Pády", points:1, type:"text", acceptable:["3. pád","3.pád","dativ","3 pád","treti pad"], prompt:"Urči pád podstatného jména 'dětem' ve větě: Babička koupila dárky dětem.", explanation:"Otázka 'komu, čemu?' → dětem → 3. pád (dativ)."},
+      {code:"C-02-03", topic:"Druhy vět", points:1, type:"text", acceptable:["tázací"], prompt:"Urči druh věty podle postoje mluvčího: 'Kdy už konečně přijedeš?'", explanation:"Věta se ptá – jde o větu tázací."},
+      {code:"C-02-04", topic:"Literatura – žánry", points:2, type:"text", acceptable:["bajka"], prompt:"Jak se nazývá krátký smyšlený příběh se zvířecími hrdiny, který na konci obsahuje ponaučení?", explanation:"Jde o bajku (např. bajky Ezopovy)."}
+    ]
+  },
+  { day:3,
+    math:[
+      {code:"M-03-01", topic:"Procenta – navýšení", points:2, type:"number", answer:896, prompt:"Cena batohu 800 Kč se zvýšila o 12 %. Jaká je nová cena v Kč?", explanation:"12 % z 800 = 96. 800 + 96 = 896 Kč."},
+      {code:"M-03-02", topic:"Výrazy", points:2, type:"text", acceptable:["x+12","x + 12"], prompt:"Zjednoduš výraz: 3(x + 4) − 2x", explanation:"3x + 12 − 2x = x + 12."},
+      {code:"M-03-03", topic:"Slovní úloha – společná práce", points:3, type:"number", answer:3, prompt:"Nádrž se naplní jednou hadicí za 6 hodin. Za kolik hodin se naplní, když použijeme dvě stejné hadice najednou?", explanation:"Jedna hadice naplní 1/6 nádrže za hodinu, dvě hadice 2/6 = 1/3 za hodinu. Naplnění trvá 3 hodiny."},
+      {code:"M-03-04", topic:"Kombinatorika", points:2, type:"number", answer:6, prompt:"Kolika způsoby lze seřadit za sebe 3 různé knihy na poličce?", explanation:"3! = 3 × 2 × 1 = 6 způsobů."}
+    ],
+    czech:[
+      {code:"C-03-01", topic:"Psaní čárky", points:1, type:"text", acceptable:["ne"], prompt:"Má věta mít čárku před 'a'?\n'Umyl nádobí a šel spát.' (ano/ne)", explanation:"Jde o spojení dvou vět spojkou 'a' ve stejném významu (slučovací) – čárka se nepíše."},
+      {code:"C-03-02", topic:"Slovní druhy", points:1, type:"text", acceptable:["spojka"], prompt:"Urči slovní druh slova 'protože' ve větě: Nešel jsem venku, protože pršelo.", explanation:"'Protože' spojuje věty a vyjadřuje příčinu – je to spojka."},
+      {code:"C-03-03", topic:"Práce s textem", points:2, type:"text", keywordMatch:true, acceptable:["spolupracovat","řešit problémy","spolupráci","řešení problémů"], prompt:"Přečti si text a odpověz na otázku.\n\n„Robotika se dnes učí i na základních školách. Děti si stavějí jednoduché roboty a programují jejich pohyb. Nejde jen o techniku – žáci se učí spolupracovat a řešit problémy.“\n\nOtázka: Co se žáci učí kromě techniky?", explanation:"Text uvádí, že se učí 'spolupracovat a řešit problémy'."},
+      {code:"C-03-04", topic:"Sloh – slohové útvary", points:1, type:"text", acceptable:["úvaha","uvaha"], prompt:"Jak se nazývá slohový útvar, ve kterém autor rozvíjí a hodnotí svůj názor na určité téma?", explanation:"Jde o úvahu."}
+    ]
+  },
+  { day:4,
+    math:[
+      {code:"M-04-01", topic:"Zlomky a desetinná čísla", points:1, type:"text", acceptable:["5/8"], prompt:"Které číslo je větší: 5/8 nebo 0,6? Napiš ho.", explanation:"5/8 = 0,625, což je víc než 0,6. Větší je 5/8."},
+      {code:"M-04-02", topic:"Rovnice se zlomkem", points:2, type:"number", answer:21, prompt:"Vyřeš rovnici a urči x:\nx/3 + 2 = 9", explanation:"x/3 = 7, x = 21."},
+      {code:"M-04-03", topic:"Geometrie – obvod kruhu", points:3, type:"number", answer:31.4, tolerance:0.2, prompt:"Kruh má poloměr 5 cm. Jaký je jeho obvod? (použij π ≈ 3,14, zaokrouhli na jedno desetinné místo)", explanation:"o = 2πr = 2 × 3,14 × 5 = 31,4 cm."},
+      {code:"M-04-04", topic:"Slovní úloha – věk", points:3, type:"number", answer:17, prompt:"Petr je o 4 roky starší než Jana. Součet jejich věků je 30 let. Kolik je Petrovi let?", explanation:"Jana = x, Petr = x+4. x + x + 4 = 30 → x = 13, Petr = 17."}
+    ],
+    czech:[
+      {code:"C-04-01", topic:"Shoda podmětu s přísudkem", points:2, type:"text", acceptable:["povídaly","povidaly"], prompt:"Doplň správný tvar slovesa v minulém čase:\nDívky si dlouho (povídat) ___ na hřišti.", explanation:"Podmět 'dívky' je rodu ženského, v množném čísle → povídaly."},
+      {code:"C-04-02", topic:"Stupňování přídavných jmen", points:1, type:"text", acceptable:["hezčí","hezci"], prompt:"Utvoř 2. stupeň (komparativ) přídavného jména 'hezký'.", explanation:"Hezký → hezčí → nejhezčí."},
+      {code:"C-04-03", topic:"Podmět a přísudek", points:1, type:"text", acceptable:["růže","ruze"], prompt:"Urči podmět ve větě: 'Na zahradě kvetly růže.'", explanation:"Kdo/co kvetlo? Růže – to je podmět."},
+      {code:"C-04-04", topic:"Literatura – básnický tvar", points:1, type:"text", acceptable:["sloka","strofa"], prompt:"Jak se nazývá skupina veršů, která je základní stavební jednotkou básně (nejčastěji 4 verše)?", explanation:"Jde o sloku (strofu)."}
+    ]
+  },
+  { day:5,
+    math:[
+      {code:"M-05-01", topic:"Procenta – sleva", points:2, type:"number", answer:280, prompt:"Kalkulačka stojí 350 Kč. Kolik zaplatíš se slevou 20 %?", explanation:"20 % z 350 = 70. 350 − 70 = 280 Kč."},
+      {code:"M-05-02", topic:"Mocniny a odmocniny", points:2, type:"number", answer:13, prompt:"Vypočítej: √81 + 2²", explanation:"√81 = 9, 2² = 4. 9 + 4 = 13."},
+      {code:"M-05-03", topic:"Geometrie – objem kvádru", points:2, type:"number", answer:60, prompt:"Kvádr má rozměry 3 cm, 4 cm a 5 cm. Jaký je jeho objem?", explanation:"3 × 4 × 5 = 60 cm³."},
+      {code:"M-05-04", topic:"Slovní úloha – rozdělení", points:1, type:"number", answer:150, prompt:"Tři kamarádi si rozdělili 450 Kč rovným dílem. Kolik Kč dostal každý?", explanation:"450 : 3 = 150 Kč."}
+    ],
+    czech:[
+      {code:"C-05-01", topic:"Pravopis s/z", points:1, type:"text", acceptable:["z"], prompt:"Doplň s/z: Kniha byla velmi __ajímavá.", explanation:"Předpona z- ve slově 'zajímavá'."},
+      {code:"C-05-02", topic:"Slovní druhy", points:1, type:"text", acceptable:["číslovka","cislovka"], prompt:"Urči slovní druh slova 'tři' ve větě: Koupili jsme tři jablka.", explanation:"'Tři' vyjadřuje počet – jde o číslovku."},
+      {code:"C-05-03", topic:"Práce s textem", points:2, type:"text", keywordMatch:true, acceptable:["roztály","roztaly","teplem","roztavily"], prompt:"Přečti si text a odpověz na otázku.\n\n„Za oknem padal první letošní sníh. Tomáš si oblékl bundu a vyběhl na zahradu. Chytal vločky do dlaně a smál se, jak rychle mizely.“\n\nOtázka: Proč vločky v Tomášově dlani mizely?", explanation:"Vločky roztály teplem jeho ruky – i když to text neříká přímo, dá se to odvodit."},
+      {code:"C-05-04", topic:"Literatura – žánry", points:1, type:"text", acceptable:["detektivka"], prompt:"Jak se nazývá literární žánr, jehož hlavním znakem je záhada, kterou čtenář postupně rozkrývá spolu s hlavní postavou?", explanation:"Jde o detektivku."}
+    ]
+  }
+];
+
+/* ============== STAV (localStorage) ============== */
+const STORAGE_KEY = "jpz-trenink-stav-v1";
+function loadState(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw) return JSON.parse(raw);
+  }catch(e){}
+  return { progress:{}, notes:{}, selectedDay:1 };
+}
+function saveState(){
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }catch(e){}
+}
+let state = loadState();
+
+/* ============== POMOCNÉ FUNKCE ============== */
+function allExercises(){
+  const out = [];
+  DAYS.forEach(d=>{
+    d.math.forEach(ex=>out.push({...ex, day:d.day, subject:"math"}));
+    d.czech.forEach(ex=>out.push({...ex, day:d.day, subject:"czech"}));
+  });
+  return out;
+}
+function findExercise(code){
+  return allExercises().find(e=>e.code===code);
+}
+function dayList(day, subject){
+  const d = DAYS.find(x=>x.day===day);
+  return d ? d[subject] : [];
+}
+function norm(str){
+  return String(str).trim().toLowerCase()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g,"")
+    .replace(/\s+/g," ");
+}
+function isCorrect(item, userAnswer){
+  if(userAnswer===undefined || userAnswer===null || String(userAnswer).trim()==="") return false;
+  if(item.type==="number"){
+    const val = parseFloat(String(userAnswer).replace(",","."));
+    if(isNaN(val)) return false;
+    const tol = item.tolerance || 0.01;
+    return Math.abs(val - item.answer) <= tol;
+  }
+  const u = norm(userAnswer);
+  const accepted = (item.acceptable||[]).map(norm);
+  if(item.keywordMatch){
+    return accepted.some(a=>u.includes(a));
+  }
+  return accepted.includes(u);
+}
+function dayStats(day){
+  let total=0, done=0, correct=0, points=0, earned=0;
+  ["math","czech"].forEach(subject=>{
+    dayList(day, subject).forEach(ex=>{
+      total++; points += ex.points;
+      const p = state.progress[ex.code];
+      if(p && p.done){ done++; if(p.correct){correct++; earned+=ex.points;} }
+    });
+  });
+  return {total, done, correct, points, earned};
+}
+function subjectStats(day, subject){
+  let total=0, done=0, correct=0;
+  dayList(day, subject).forEach(ex=>{
+    total++;
+    const p = state.progress[ex.code];
+    if(p && p.done){ done++; if(p.correct) correct++; }
+  });
+  return {total, done, correct};
+}
+
+/* ============== NAVIGACE / VIEW ============== */
+let currentView = "plan";
+let runState = { day:1, subject:"math", index:0 };
+
+document.getElementById("mainNav").addEventListener("click", e=>{
+  const btn = e.target.closest("button[data-view]");
+  if(!btn) return;
+  currentView = btn.dataset.view;
+  render();
+});
+
+function setNavActive(){
+  document.querySelectorAll("#mainNav button").forEach(b=>{
+    b.classList.toggle("active", b.dataset.view===currentView);
+  });
+}
+
+function render(){
+  setNavActive();
+  const app = document.getElementById("app");
+  if(currentView==="plan") app.innerHTML = renderPlan();
+  else if(currentView==="run") app.innerHTML = renderRun();
+  else if(currentView==="results") app.innerHTML = renderResults();
+  bindViewEvents();
+}
+
+/* ---------- PLAN VIEW ---------- */
+function renderPlan(){
+  const day = state.selectedDay || 1;
+  const dots = DAYS.map(d=>{
+    const st = dayStats(d.day);
+    const allDone = st.total>0 && st.done===st.total;
+    const cls = d.day===day ? "current" : (allDone ? "done":"");
+    return `<button class="day-dot ${cls}" data-day="${d.day}">${d.day}</button>`;
+  }).join("");
+
+  const mStats = subjectStats(day,"math");
+  const cStats = subjectStats(day,"czech");
+  const mPct = mStats.total? Math.round(mStats.done/mStats.total*100):0;
+  const cPct = cStats.total? Math.round(cStats.done/cStats.total*100):0;
+
+  return `
+    <div class="plan-head">
+      <h2>Den ${day} z ${DAYS.length}</h2>
+      <p>Každý den: 30 minut matematika + 30 minut čeština</p>
+    </div>
+    <div class="day-strip">${dots}</div>
+    <div class="subject-row">
+      <div class="card subject-card math">
+        <h3>Matematika</h3>
+        <div class="meta">${mStats.total} úloh · hotovo ${mStats.done}/${mStats.total} · správně ${mStats.correct}</div>
+        <div class="progressbar"><span style="width:${mPct}%"></span></div>
+        <button class="go-btn" data-start="math" data-day="${day}">Spustit</button>
+      </div>
+      <div class="card subject-card czech">
+        <h3>Čeština</h3>
+        <div class="meta">${cStats.total} úloh · hotovo ${cStats.done}/${cStats.total} · správně ${cStats.correct}</div>
+        <div class="progressbar"><span style="width:${cPct}%"></span></div>
+        <button class="go-btn" data-start="czech" data-day="${day}">Spustit</button>
+      </div>
+    </div>
+    <p class="tip">Po dokončení dne se posunete na další kliknutím na jeho číslo výše.</p>
+  `;
+}
+
+/* ---------- RUN VIEW (jedna úloha) ---------- */
+function renderRun(){
+  const list = dayList(runState.day, runState.subject);
+  const item = list[runState.index];
+  if(!item) return `<div class="card">Žádné úlohy.</div>`;
+  const subjLabel = runState.subject==="math" ? "Matematika" : "Čeština";
+  const topicClass = runState.subject==="math" ? "math" : "czech";
+  const saved = state.progress[item.code];
+  const savedNote = state.notes[item.code] || "";
+
+  return `
+    <div class="run-top">
+      <button class="back" data-back="plan">← Zpět na plán</button>
+      <span>${subjLabel} · úloha ${runState.index+1} z ${list.length}</span>
+    </div>
+    <div class="card">
+      <div class="badge-row">
+        <span class="badge code">${item.code}</span>
+        <span class="badge topic ${topicClass}">${item.topic}</span>
+        <span class="badge">${item.points} ${item.points===1?"bod":"body"}</span>
+      </div>
+      <div class="prompt">${item.prompt}</div>
+      <div class="answer-row">
+        <input type="text" id="answerInput" placeholder="Sem napiš odpověď" value="${saved&&saved.lastAnswer?saved.lastAnswer:""}">
+        <button class="check-btn" id="checkBtn">Zkontrolovat</button>
+      </div>
+      <div class="result-box" id="resultBox"></div>
+      <div class="nav-row">
+        <button id="prevBtn" ${runState.index===0?"disabled":""}>← Předchozí</button>
+        <button id="nextBtn" ${runState.index===list.length-1?"disabled":""}>Další →</button>
+      </div>
+      <div class="note-area">
+        <label for="noteInput">Poznámka k této úloze (uveďte kód ${item.code}, až mi budete psát zpětnou vazbu):</label>
+        <textarea id="noteInput" placeholder="Např.: tuhle úlohu nechápal, potřeboval nápovědu...">${savedNote}</textarea>
+        <button class="note-save" id="noteSaveBtn">Uložit poznámku</button>
+        <span class="note-saved-flag" id="noteFlag" style="display:none;">Uloženo ✓</span>
+      </div>
+    </div>
+  `;
+}
+
+function bindRunAnswerState(){
+  const list = dayList(runState.day, runState.subject);
+  const item = list[runState.index];
+  const saved = state.progress[item.code];
+  if(saved && saved.done){
+    showResult(item, saved.correct, saved.lastAnswer);
+  }
+}
+
+function showResult(item, correct, userAnswer){
+  const box = document.getElementById("resultBox");
+  box.classList.add("show");
+  box.classList.toggle("correct", correct);
+  box.classList.toggle("wrong", !correct);
+  box.innerHTML = correct
+    ? `<div class="verdict">Správně!</div><div>${item.explanation}</div>`
+    : `<div class="verdict">Ještě to není přesně ono.</div><div>Správné řešení: <strong>${(item.acceptable? item.acceptable[0] : item.answer)}</strong><br>${item.explanation}</div>`;
+}
+
+/* ---------- RESULTS VIEW ---------- */
+function renderResults(){
+  const all = allExercises();
+  let totalDone=0, totalCorrect=0, totalPoints=0, earnedPoints=0;
+  const rows = all.map(ex=>{
+    totalPoints += ex.points;
+    const p = state.progress[ex.code];
+    const note = state.notes[ex.code] || "";
+    let statusDot = `<span class="status-dot none"></span>nezkoušeno`;
+    if(p && p.done){
+      totalDone++;
+      if(p.correct){ totalCorrect++; earnedPoints += ex.points; statusDot = `<span class="status-dot ok"></span>správně`; }
+      else statusDot = `<span class="status-dot bad"></span>nesprávně`;
+    }
+    return `<tr>
+      <td>${ex.code}</td>
+      <td>Den ${ex.day} · ${ex.subject==="math"?"M":"ČJ"}</td>
+      <td>${ex.topic}</td>
+      <td>${statusDot}</td>
+      <td>${note ? note.replace(/</g,"&lt;") : "—"}</td>
+    </tr>`;
+  }).join("");
+
+  return `
+    <div class="stat-row">
+      <div class="stat"><span class="num">${totalDone}/${all.length}</span><span class="lbl">vyzkoušeno úloh</span></div>
+      <div class="stat"><span class="num">${totalCorrect}</span><span class="lbl">správně</span></div>
+      <div class="stat"><span class="num">${earnedPoints}/${totalPoints}</span><span class="lbl">bodů celkem</span></div>
+    </div>
+    <div class="card">
+      <h3 style="margin-top:0;">Přehled úloh a poznámek</h3>
+      <table class="results">
+        <thead><tr><th>Kód</th><th>Den</th><th>Téma</th><th>Stav</th><th>Poznámka</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+    <div class="card">
+      <h3 style="margin-top:0;">Souhrn pro zpětnou vazbu</h3>
+      <p style="font-size:.9rem; color:var(--ink-soft); margin-top:0;">Tento text zkopírujte a vložte do chatu s Claude – podle kódů úloh upravím další dny.</p>
+      <textarea id="exportBox" readonly>${buildExportText(all)}</textarea>
+      <button class="copy-btn" id="copyBtn">Kopírovat souhrn</button>
+      <span class="copy-flag" id="copyFlag" style="display:none;">Zkopírováno ✓</span>
+    </div>
+  `;
+}
+
+function buildExportText(all){
+  const lines = ["Zpětná vazba k tréninkovému deníku:"];
+  all.forEach(ex=>{
+    const p = state.progress[ex.code];
+    const note = state.notes[ex.code];
+    if((p && p.done) || note){
+      let statusTxt = "nezkoušeno";
+      if(p && p.done) statusTxt = p.correct ? "správně" : "nesprávně";
+      lines.push(`- ${ex.code} (${ex.topic}): ${statusTxt}${note? " | poznámka: "+note : ""}`);
+    }
+  });
+  if(lines.length===1) lines.push("(zatím žádné vyplněné úlohy ani poznámky)");
+  return lines.join("\n");
+}
+
+/* ============== EVENTY ============== */
+function bindViewEvents(){
+  // PLAN
+  document.querySelectorAll(".day-dot").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      state.selectedDay = parseInt(btn.dataset.day,10);
+      saveState();
+      render();
+    });
+  });
+  document.querySelectorAll("[data-start]").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      runState = { day: parseInt(btn.dataset.day,10), subject: btn.dataset.start, index:0 };
+      currentView = "run";
+      render();
+    });
+  });
+
+  // RUN
+  const backBtn = document.querySelector("[data-back]");
+  if(backBtn) backBtn.addEventListener("click", ()=>{ currentView="plan"; render(); });
+
+  const checkBtn = document.getElementById("checkBtn");
+  if(checkBtn){
+    checkBtn.addEventListener("click", ()=>{
+      const list = dayList(runState.day, runState.subject);
+      const item = list[runState.index];
+      const val = document.getElementById("answerInput").value;
+      const correct = isCorrect(item, val);
+      state.progress[item.code] = { done:true, correct, lastAnswer:val };
+      saveState();
+      showResult(item, correct, val);
+    });
+  }
+  const prevBtn = document.getElementById("prevBtn");
+  if(prevBtn) prevBtn.addEventListener("click", ()=>{
+    if(runState.index>0){ runState.index--; render(); bindRunAnswerState(); }
+  });
+  const nextBtn = document.getElementById("nextBtn");
+  if(nextBtn) nextBtn.addEventListener("click", ()=>{
+    const list = dayList(runState.day, runState.subject);
+    if(runState.index<list.length-1){ runState.index++; render(); bindRunAnswerState(); }
+  });
+  const noteSaveBtn = document.getElementById("noteSaveBtn");
+  if(noteSaveBtn){
+    noteSaveBtn.addEventListener("click", ()=>{
+      const list = dayList(runState.day, runState.subject);
+      const item = list[runState.index];
+      state.notes[item.code] = document.getElementById("noteInput").value;
+      saveState();
+      const flag = document.getElementById("noteFlag");
+      flag.style.display = "inline";
+      setTimeout(()=>{ flag.style.display="none"; }, 1800);
+    });
+  }
+  if(currentView==="run") bindRunAnswerState();
+
+  // RESULTS
+  const copyBtn = document.getElementById("copyBtn");
+  if(copyBtn){
+    copyBtn.addEventListener("click", ()=>{
+      const box = document.getElementById("exportBox");
+      const text = box.value;
+      const flag = document.getElementById("copyFlag");
+      function flagOn(){ flag.style.display="inline"; setTimeout(()=>{flag.style.display="none";},1800); }
+      if(navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(text).then(flagOn).catch(()=>{
+          box.select(); document.execCommand("copy"); flagOn();
+        });
+      } else {
+        box.select(); document.execCommand("copy"); flagOn();
+      }
+    });
+  }
+}
+
+/* ============== START ============== */
+render();
+</script>
+</body>
+</html>
